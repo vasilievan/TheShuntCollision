@@ -5,19 +5,34 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 
 public class Menu implements Screen {
-    Game parent;
-    SpriteBatch drawingBatch;
-    Texture background;
-    AssetManager assets;
+    private Game parent;
+    private SpriteBatch drawingBatch;
+    private Texture background;
+    private AssetManager assets;
+    private BitmapFont font24;
+    private int totalScore;
 
-    Menu(Game game, AssetManager assets){
+    Menu(Game game, AssetManager assets, int totalScore){
         this.parent = game;
         this.assets = assets;
+        this.totalScore = totalScore;
+    }
+
+    private void scoreMaker() {
+        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("CASTELAR.TTF"));
+        FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        parameter.size = 130;
+        parameter.color = Color.BLACK;
+        font24 = generator.generateFont(parameter);
+        generator.dispose();
     }
 
     private void serviceFunction() {
@@ -42,6 +57,7 @@ public class Menu implements Screen {
                 return true;
             }
         });
+        scoreMaker();
     }
 
     @Override
@@ -49,6 +65,7 @@ public class Menu implements Screen {
         serviceFunction();
         drawingBatch.begin();
         drawingBatch.draw(background, 0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        font24.draw(drawingBatch, "TOTAL SCORE  " + totalScore, Gdx.graphics.getWidth() / 5f, Gdx.graphics.getHeight() / 2.5f);
         drawingBatch.end();
     }
 

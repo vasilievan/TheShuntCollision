@@ -8,8 +8,6 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -37,8 +35,6 @@ import com.badlogic.gdx.physics.bullet.collision.btDispatcherInfo;
 import com.badlogic.gdx.physics.bullet.collision.btManifoldResult;
 import com.badlogic.gdx.physics.bullet.collision.btPersistentManifold;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.BufferUtils;
-import com.badlogic.gdx.utils.ScreenUtils;
 import java.util.Random;
 
 public class MyShuntGame implements Screen {
@@ -69,7 +65,7 @@ public class MyShuntGame implements Screen {
 	private Vector3 beginning;
 	private Vector3 trainBeginning;
 
-	ModelInstance trainInstance;
+	private ModelInstance trainInstance;
 
 	private float limit;
 	private float trainLimit;
@@ -78,28 +74,26 @@ public class MyShuntGame implements Screen {
 	private float transportSpeed;
 	private boolean changeScore;
 
-	btCollisionConfiguration collisionConfig;
-	btDispatcher dispatcher;
-    btBoxShape gdxCarShape;
-	btCollisionObject gdxCarCollisionObject;
-	btBoxShape gdxTrolleyBusShape;
-	btCollisionObject gdxTrolleyBusCollisionObject;
-	btCollisionObject gdxTrainCollisionObject;
-	btBoxShape gdxTrainShape;
-	btCollisionObject currentCollisionObject;
+	private btDispatcher dispatcher;
+    private btBoxShape gdxCarShape;
+	private btCollisionObject gdxCarCollisionObject;
+	private btBoxShape gdxTrolleyBusShape;
+	private btCollisionObject gdxTrolleyBusCollisionObject;
+	private btCollisionObject gdxTrainCollisionObject;
+	private btBoxShape gdxTrainShape;
+	private btCollisionObject currentCollisionObject;
 
-	boolean collision;
-	boolean screenshotSaved;
+	private boolean collision;
 
-	Texture mine;
+	private Texture loadingTexture;
 
 	@Override
 	public void show() {
 		sceneObjects = new String[]{"Police", "Car", "Car1", "Car2", "Car3", "Ambulance", "TrolleyBus", "TrolleyBus1", "Train", "Shunt", "Stones", "Stick", "Bus-stop", "Road", "Rails", "Grass", "Home", "Lantern", "Fir-tree"};
 		Bullet.init();
-		mine = new Texture(Gdx.files.internal("loading.png"));
+		loadingTexture = new Texture(Gdx.files.internal("loading.png"));
 
-		collisionConfig = new btDefaultCollisionConfiguration();
+		btCollisionConfiguration collisionConfig = new btDefaultCollisionConfiguration();
 		dispatcher = new btCollisionDispatcher(collisionConfig);
 		collision = false;
 
@@ -157,7 +151,7 @@ public class MyShuntGame implements Screen {
 	public void render(float delta) {
 		if (loading) {
 			drawingBatch.begin();
-			drawingBatch.draw(mine, 0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+			drawingBatch.draw(loadingTexture, 0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 			drawingBatch.end();
 		}
 		instancesLoader();
@@ -166,7 +160,7 @@ public class MyShuntGame implements Screen {
             if (collision) {
 				trainSpeed = 0;
 				transportSpeed = 0;
-				parent.setScreen(new Menu(parent, assets));
+				parent.setScreen(new Menu(parent, assets, totalScore));
 			}
 
 			if ((fortuneChoice == instances.get(6)) || (fortuneChoice == instances.get(7)))  {
@@ -259,22 +253,20 @@ public class MyShuntGame implements Screen {
 		}
 	}
 
-	// this one is correct
 	private void speedIncreaser() {
 		if (totalScore <= 10) {
-			transportSpeed = -0.2f;
-		} else if ((totalScore > 10) && (totalScore <= 15)) {
 			transportSpeed = -0.3f;
-		} else if ((totalScore > 15) && (totalScore <= 20)) {
+		} else if ((totalScore > 10) && (totalScore <= 15)) {
 			transportSpeed = -0.4f;
-		} else if ((totalScore > 20) && (totalScore <= 25)) {
+		} else if ((totalScore > 15) && (totalScore <= 20)) {
 			transportSpeed = -0.5f;
-		} else {
+		} else if ((totalScore > 20) && (totalScore <= 25)) {
 			transportSpeed = -0.6f;
+		} else {
+			transportSpeed = -0.8f;
 		}
 	}
 
-	// this one is correct
 	private void scoreIncreaser() {
 		if ((fortuneChoice.transform.getTranslation(new Vector3()).x < 0.25) && (changeScore)) {
 			totalScore++;
@@ -282,7 +274,6 @@ public class MyShuntGame implements Screen {
 		}
 	}
 
-	// this one is correct
 	private void trainCycler () {
 		if (trainInstance.transform.getTranslation(new Vector3()).y > trainLimit) {
 			trainSpeed = trainSpeedGenerator();
@@ -291,7 +282,6 @@ public class MyShuntGame implements Screen {
 		}
 	}
 
-	// this one is correct
 	private void serviceFunction() {
 		Gdx.gl.glClearColor(1f, 1f, 1f, 1f);
 		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -306,7 +296,6 @@ public class MyShuntGame implements Screen {
 		Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
 	}
 
-	// this one is correct
 	private boolean checkCollision(){
 		CollisionObjectWrapper co0 = new CollisionObjectWrapper(currentCollisionObject);
 		CollisionObjectWrapper co2 = new CollisionObjectWrapper(gdxTrainCollisionObject);
@@ -327,7 +316,6 @@ public class MyShuntGame implements Screen {
 		return trainR;
 	}
 
-	// this one is correct
 	private ModelInstance randomInstance() {
 		int random = new Random().nextInt(8);
 		ModelInstance fortuneChoice = instances.get(random);
@@ -335,32 +323,26 @@ public class MyShuntGame implements Screen {
 		return fortuneChoice;
 	}
 
-	// this one is correct
 	private void moveRandomInstance(ModelInstance randomInstance) {
 		randomInstance.transform.translate(transportSpeed, 0, 0);
 	}
 
-	// this one is correct
 	private void moveTrain(ModelInstance randomInstance) {
 		randomInstance.transform.translate(0, 0, trainSpeed);
 	}
 
-	// this one is correct
 	private float limitGenerator() {
 		return new Random().nextFloat()*(-0.05f) + 0.25f;
 	}
 
-	// this one is correct
 	private float trainLimitGenerator() {
 		return new Random().nextFloat()*(0.1f) + 2.5f;
 	}
 
-	// this one is correct
 	private float trainSpeedGenerator() {
 		return new Random().nextFloat()*(0.4f) + 0.1f;
 	}
 
-	// this one is correct
 	private void collisionObjectMaker() {
 		if ((fortuneChoice == instances.get(0)) || (fortuneChoice == instances.get(1)) || (fortuneChoice == instances.get(2)) ||
 				(fortuneChoice == instances.get(3)) || (fortuneChoice == instances.get(4)) || (fortuneChoice == instances.get(5))) {
@@ -370,7 +352,6 @@ public class MyShuntGame implements Screen {
 		}
 	}
 
-	// this one is correct
 	@Override
 	public void dispose() {
 		modelBatch.dispose();
@@ -382,17 +363,14 @@ public class MyShuntGame implements Screen {
 		gdxTrainShape.dispose();
 	}
 
-	// this one is correct
 	@Override
 	public void resize(int width, int height) {
 	}
 
-	// this one is correct
 	@Override
 	public void pause() {
 	}
 
-	// this one is correct
 	@Override
 	public void resume() {
 	}
