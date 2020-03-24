@@ -41,7 +41,7 @@ public class MyShuntGame implements Screen {
 	private Game parent;
 	private AssetManager assets;
 
-	public  MyShuntGame(Game game, AssetManager help) {
+	public MyShuntGame(Game game, AssetManager help) {
 		this.assets = help;
 		this.parent = game;
 	}
@@ -86,9 +86,13 @@ public class MyShuntGame implements Screen {
 	private boolean collision;
 
 	private Texture loadingTexture;
+	private float scaleCoeffwidth;
 
 	@Override
 	public void show() {
+		int width = 2130;
+		scaleCoeffwidth = (float) width / Gdx.graphics.getWidth();
+
 		sceneObjects = new String[]{"Police", "Car", "Car1", "Car2", "Car3", "Ambulance", "TrolleyBus", "TrolleyBus1", "Train", "Shunt", "Stones", "Stick", "Bus-stop", "Road", "Rails", "Grass", "Home", "Lantern", "Fir-tree"};
 		Bullet.init();
 		loadingTexture = new Texture(Gdx.files.internal("loading.png"));
@@ -122,7 +126,7 @@ public class MyShuntGame implements Screen {
 		environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
 
 
-		cam = new OrthographicCamera(Gdx.graphics.getWidth()/100, Gdx.graphics.getHeight()/100);
+		cam = new OrthographicCamera(Gdx.graphics.getWidth()/(100f / scaleCoeffwidth), Gdx.graphics.getHeight()/(100f / scaleCoeffwidth));
 		cam.position.set(1f, 1f, 1f);
 		cam.lookAt(0,0,0);
 		cam.near = -10f;
@@ -137,7 +141,7 @@ public class MyShuntGame implements Screen {
 	private void scoreMaker() {
 		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("Arkhip-Regular.ttf"));
 		FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
-		parameter.size = 60;
+		parameter.size = (int)(60 / scaleCoeffwidth);
 		parameter.borderWidth = 1;
 		parameter.color = Color.BLACK;
 		parameter.shadowOffsetX = 3;

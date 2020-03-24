@@ -19,6 +19,7 @@ public class Menu implements Screen {
     private AssetManager assets;
     private BitmapFont font24;
     private int totalScore;
+    private float scaleCoeffwidth;
 
     Menu(Game game, AssetManager assets, int totalScore){
         this.parent = game;
@@ -29,7 +30,7 @@ public class Menu implements Screen {
     private void scoreMaker() {
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("CASTELAR.TTF"));
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        parameter.size = 130;
+        parameter.size = (int)(130 / scaleCoeffwidth);
         parameter.color = Color.BLACK;
         font24 = generator.generateFont(parameter);
         generator.dispose();
@@ -48,6 +49,8 @@ public class Menu implements Screen {
 
     @Override
     public void show() {
+        int width = 2130;
+        scaleCoeffwidth = (float) width / Gdx.graphics.getWidth();
         drawingBatch = new SpriteBatch();
         background = new Texture(Gdx.files.internal("background.png"));
         Gdx.input.setInputProcessor(new InputAdapter(){
