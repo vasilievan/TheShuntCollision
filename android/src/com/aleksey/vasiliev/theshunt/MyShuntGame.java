@@ -5,6 +5,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -41,10 +43,19 @@ public class MyShuntGame implements Screen {
 	private Game parent;
 	private AssetManager assets;
 
+	private Music forest;
+	private Sound crash;
+	private Sound trainSound;
+	private Sound fortuneChoiceSound;
+	private Sound shuntSound;
+
 	public MyShuntGame(Game game, AssetManager help) {
 		this.assets = help;
 		this.parent = game;
 	}
+
+	private boolean makeSoundForTrain = true;
+	private boolean makeSoundForFortuneChoice = true;
 
 	private Environment environment;
 	private OrthographicCamera cam;
@@ -92,7 +103,6 @@ public class MyShuntGame implements Screen {
 	public void show() {
 		int width = 2130;
 		scaleCoeffwidth = (float) width / Gdx.graphics.getWidth();
-
 		sceneObjects = new String[]{"Police", "Car", "Car1", "Car2", "Car3", "Ambulance", "TrolleyBus", "TrolleyBus1", "Train", "Shunt", "Stones", "Stick", "Bus-stop", "Road", "Rails", "Grass", "Home", "Lantern", "Fir-tree"};
 		Bullet.init();
 		loadingTexture = new Texture(Gdx.files.internal("loading.png"));
@@ -129,8 +139,8 @@ public class MyShuntGame implements Screen {
 		cam = new OrthographicCamera(Gdx.graphics.getWidth()/(100f / scaleCoeffwidth), Gdx.graphics.getHeight()/(100f / scaleCoeffwidth));
 		cam.position.set(1f, 1f, 1f);
 		cam.lookAt(0,0,0);
-		cam.near = -10f;
-		cam.far = 300f;
+		cam.near = -12f;
+		cam.far = 350f;
 		cam.update();
 
 		scoreMaker();
@@ -162,6 +172,10 @@ public class MyShuntGame implements Screen {
 		if (!loading) {
             collision = checkCollision();
             if (collision) {
+            	forest.stop();
+				fortuneChoiceSound.stop();
+            	trainSound.stop();
+				crash.play(0.8f);
 				trainSpeed = 0;
 				transportSpeed = 0;
 				parent.setScreen(new Menu(parent, assets, totalScore));
@@ -175,8 +189,28 @@ public class MyShuntGame implements Screen {
 				Matrix4 mat = fortuneChoice.transform.cpy();
 				currentCollisionObject.setWorldTransform(mat.translate(-0.2f, 0f, 0f));
 			}
-			if (isRotated) {
+			if ((isRotated) || (fortuneChoice.transform.getTranslation(new Vector3()).x < 0.28f) || (fortuneChoice.transform.getTranslation(new Vector3()).x > 0.31f)) {
 				moveRandomInstance(fortuneChoice);
+			}
+
+			if ((trainInstance.transform.getTranslation(new Vector3()).y > 0.4f) && (trainInstance.transform.getTranslation(new Vector3()).y < 2.4)) {
+				if (makeSoundForTrain) {
+					trainSound.play(0.15f);
+					makeSoundForTrain = false;
+				}
+			} else {
+				trainSound.stop();
+				makeSoundForTrain = true;
+			}
+
+			if ((fortuneChoice.transform.getTranslation(new Vector3()).x > 0.25f) && (fortuneChoice.transform.getTranslation(new Vector3()).x < 0.32)) {
+				if (makeSoundForFortuneChoice) {
+					fortuneChoiceSound.play(0.7f);
+					makeSoundForFortuneChoice = false;
+				}
+			} else {
+				fortuneChoiceSound.stop();
+				makeSoundForFortuneChoice = true;
 			}
 
 			Matrix4 trainMat = trainInstance.transform.cpy();
@@ -237,16 +271,28 @@ public class MyShuntGame implements Screen {
 			limit = limitGenerator();
 			trainLimit = trainLimitGenerator();
 			trainSpeed = trainSpeedGenerator();
+			crash = assets.get("crash.mp3");
+			trainSound = assets.get("train.mp3");
+			fortuneChoiceSound = assets.get("wheels.mp3");
+			shuntSound = assets.get("shuntSound.mp3");
+			forest = assets.get("forest.mp3");
+			forest.setVolume(0.8f);
+			forest.setLooping(true);
+			forest.play();
 			loading = false;
 
 			Gdx.input.setInputProcessor(new InputAdapter(){
 				@Override
 				public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 					if(isRotated) {
+						shuntSound.play(1f);
+						fortuneChoiceSound.stop();
 						shuntInstance.transform.rotate(0, 1, 0, 90);
 						shuntInstance.transform.translate(2.4f,0,0.217f);
 						isRotated = false;
 					} else {
+						shuntSound.play(1f);
+						fortuneChoiceSound.play(0.7f);
 						shuntInstance.transform.rotate(0, -1, 0, 90);
 						shuntInstance.transform.translate(-0.217f,0,2.4f);
 						isRotated = true;
